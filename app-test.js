@@ -1,7 +1,7 @@
 import { config } from './config.js';
 import { runProbe, buildApiPayload } from './probe.js';
 import { buildSubmissionPayload, sendProbePayload } from './sender.js';
-import { renderResult, setLoading, showStatus } from './ui.js';
+import { renderResult, setLoading, showStatus } from './ui-test.js';
 
 const state = {
   result: null,
