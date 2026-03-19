@@ -1,8 +1,11 @@
+import { config } from './config.js';
 import { runProbe, buildApiPayload } from './probe.js';
+import { buildSubmissionPayload, sendProbePayload } from './sender.js';
 import { renderResult, setLoading, showStatus } from './ui.js';
 
 const state = {
   result: null,
+  submissionPayload: null,
 };
 
 const els = {
@@ -24,25 +27,39 @@ const els = {
 };
 
 async function handleRunProbe() {
-  setLoading(els, true, 'Running test...');
+  setLoading(els, true, 'Executando teste...');
   els.showResultsBtn.disabled = true;
   els.copyJsonBtn.disabled = true;
 
   try {
-    const result = await runProbe((message) => setLoading(els, true, message));
+    const result = await runProbe((message) => setLoading(els, true, translateProgress(message)));
     state.result = result;
-    renderResult(els, result, buildApiPayload(result));
-    setLoading(els, false, 'Test complete');
+
+    const apiPayload = buildApiPayload(result);
+    renderResult(els, result, apiPayload);
+    setLoading(els, false, 'Teste concluído');
+
+    if (config.sendEnabled) {
+      showStatus(els, 'Enviando resultados...');
+      const entryLabel = window.prompt('Identificação desta entrada (opcional):', '') ?? '';
+      const submissionPayload = buildSubmissionPayload(result, {
+        appVersion: config.appVersion,
+        entryLabel,
+      });
+      state.submissionPayload = submissionPayload;
+      await sendProbePayload(config.apiEndpoint, submissionPayload);
+      showStatus(els, 'Resultados enviados');
+    }
   } catch (error) {
     console.error(error);
-    setLoading(els, false, `Test failed: ${error?.message || error}`);
+    setLoading(els, false, `Falha: ${error?.message || error}`);
   }
 }
 
 async function copyJson() {
   if (!state.result) return;
   await navigator.clipboard.writeText(JSON.stringify(state.result, null, 2));
-  showStatus(els, 'JSON copied');
+  showStatus(els, 'JSON copiado');
 }
 
 function downloadJson() {
@@ -54,6 +71,16 @@ function downloadJson() {
   a.download = 'device-probe-result.json';
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function translateProgress(message) {
+  const map = {
+    'Checking browser details...': 'Verificando navegador...',
+    'Checking browser capabilities...': 'Verificando recursos do navegador...',
+    'Checking media and permissions...': 'Verificando mídia e permissões...',
+    'Running mini-benchmarks...': 'Executando pequenos testes de desempenho...',
+  };
+  return map[message] || message;
 }
 
 els.runProbeBtn.addEventListener('click', handleRunProbe);
