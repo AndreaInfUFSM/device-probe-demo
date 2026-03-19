@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Device Probe Demo</title>
+  <style>
+    :root {
+      --bg: #f7f3ec;
+      --panel: #fffdf9;
+      --panel-soft: #f3ede4;
+      --text: #3d342b;
+      --muted: #7a6d61;
+      --accent: #7b9e87;
+      --accent-dark: #5f7f69;
+      --border: #dbcfc0;
+      --shadow: 0 14px 36px rgba(74, 57, 40, 0.12);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #faf6ef 0%, #f5efe6 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 18px;
+    }
+
+    .page {
+      width: min(860px, 100%);
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 28px 24px 18px;
+      background: linear-gradient(180deg, rgba(123,158,135,0.08), rgba(123,158,135,0));
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #eef4ef;
+      color: #496453;
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(28px, 4.5vw, 40px);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 62ch;
+    }
+
+    .actions {
+      padding: 6px 24px 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.2s ease, background 0.2s ease;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .primary:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+
+    .secondary {
+      background: #f6f0e8;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .status {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      min-height: 24px;
+      font-size: 14px;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(123,158,135,0.25);
+      border-top-color: var(--accent-dark);
+      animation: spin 0.9s linear infinite;
+      display: none;
+    }
+
+    .spinner.visible { display: inline-block; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 0 24px 24px;
+    }
+
+    .mini {
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .mini .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .mini .value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    dialog {
+      width: min(900px, calc(100vw - 24px));
+      border: 1px solid var(--border);
+      background: #fffdf9;
+      color: var(--text);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 0;
+    }
+
+    dialog::backdrop {
+      background: rgba(72, 57, 42, 0.28);
+      backdrop-filter: blur(3px);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #faf6ef;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .icon-btn {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+
+    .modal-body {
+      padding: 18px 20px 24px;
+      display: grid;
+      gap: 14px;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fcf9f3;
+      overflow: hidden;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 15px 16px;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    .details-content {
+      padding: 0 16px 16px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      background: #f5efe6;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      color: #4c4035;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: #f3ede4;
+      color: #4f6558;
+      margin: 0 8px 8px 0;
+    }
+
+    .code-block {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <section class="hero">
+        <div class="eyebrow">Browser probe demo</div>
+        <h1>Check what this device and browser can handle</h1>
+        <p class="sub">
+          This test gathers browser and device hints, feature support, media capabilities, and a few small performance checks. Later, the same structure can be sent to an API instead of shown here like a confessional for underpaid phones.
+        </p>
+      </section>
+
+      <section class="actions">
+        <button id="runProbeBtn" class="primary">Run test</button>
+        <button id="showResultsBtn" class="secondary" disabled>Show details</button>
+        <button id="copyJsonBtn" class="secondary" disabled>Copy JSON</button>
+        <div class="status">
+          <span id="spinner" class="spinner" aria-hidden="true"></span>
+          <span id="statusText">Waiting</span>
+        </div>
+      </section>
+
+      <section class="quick-grid">
+        <div class="mini">
+          <div class="label">Suggested mode</div>
+          <div id="tierValue" class="value">-</div>
+        </div>
+        <div class="mini">
+          <div class="label">Browser</div>
+          <div id="browserValue" class="value">-</div>
+        </div>
+        <div class="mini">
+          <div class="label">Memory hint</div>
+          <div id="memoryValue" class="value">-</div>
+        </div>
+        <div class="mini">
+          <div class="label">Filter test</div>
+          <div id="benchValue" class="value">-</div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="resultsModal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Probe details</div>
+        <div class="note">This is the structured output. In the real flow, you could keep this hidden and only send the payload out.</div>
+      </div>
+      <button id="closeModalBtn" class="icon-btn">Close</button>
+    </div>
+    <div class="modal-body">
+      <div id="summaryPills"></div>
+
+      <details open>
+        <summary>Normalized result</summary>
+        <div class="details-content">
+          <pre id="jsonOutput" class="code-block">No results yet.</pre>
+        </div>
+      </details>
+
+      <details>
+        <summary>Payload example for Apps Script</summary>
+        <div class="details-content">
+          <pre id="apiOutput" class="code-block">No results yet.</pre>
+        </div>
+      </details>
+
+      <div class="footer-actions">
+        <button id="downloadJsonBtn" class="secondary">Download JSON</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/bowser@2.11.0/es5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
